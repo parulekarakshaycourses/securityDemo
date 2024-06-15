@@ -1,7 +1,10 @@
 package com.example.securityDemo.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,11 +25,14 @@ import java.util.List;
 @EnableWebSecurity
 public class MySecurityConfig
 {
+    @Autowired
+    CustomerUserDetailService customUserDetailService;
+
     @Bean
     SecurityFilterChain getSecurityFilterChain(HttpSecurity http) throws Exception
     {
         http.authorizeHttpRequests((request)->request
-                .requestMatchers("/page1/", "/page2/").permitAll()
+                .requestMatchers("/page1/", "/page2/", "/regcust/", "/emp/save/").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/marketer/**").hasRole("MARKETER")
                 .requestMatchers("/customer/**").hasRole("CUSTOMER")
@@ -56,37 +62,48 @@ public class MySecurityConfig
     @Bean
     PasswordEncoder getPasswordEncoder()
     {
-    //    return new BCryptPasswordEncoder();
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
+    //    return NoOpPasswordEncoder.getInstance();
     }
+
+//    @Bean
+//    UserDetailsService getUserDetailService()
+//    {
+//        List<UserDetails> listUser = new ArrayList<>();
+//
+//        UserDetails admin = User.builder()
+//                .username("admin")
+//                .password(getPasswordEncoder().encode("123"))
+//                .roles("ADMIN")
+//                .build();
+//
+//        UserDetails marketer = User.builder()
+//                .username("marketer")
+//                .password(getPasswordEncoder().encode("123"))
+//                .roles("MARKETER")
+//                .build();
+//
+//        UserDetails customer = User.builder()
+//                .username("customer")
+//                .password(getPasswordEncoder().encode("123"))
+//                .roles("CUSTOMER")
+//                .build();
+//
+//        listUser.add(admin);
+//        listUser.add(marketer);
+//        listUser.add(customer);
+//
+//        return new InMemoryUserDetailsManager(listUser);
+//    }
 
     @Bean
-    UserDetailsService getUserDetailService()
+    public AuthenticationProvider daoAuthenticationProvider()
     {
-        List<UserDetails> listUser = new ArrayList<>();
-
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password("123")
-                .roles("ADMIN")
-                .build();
-
-        UserDetails marketer = User.builder()
-                .username("marketer")
-                .password("123")
-                .roles("MARKETER")
-                .build();
-
-        UserDetails customer = User.builder()
-                .username("customer")
-                .password("123")
-                .roles("CUSTOMER")
-                .build();
-
-        listUser.add(admin);
-        listUser.add(marketer);
-        listUser.add(customer);
-
-        return new InMemoryUserDetailsManager(listUser);
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(getPasswordEncoder());
+        provider.setUserDetailsService(customUserDetailService);
+        return provider;
     }
+
 }
