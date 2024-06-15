@@ -21,6 +21,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import java.util.ArrayList;
 import java.util.List;
 
+// Security Configuration
 @Configuration
 @EnableWebSecurity
 public class MySecurityConfig
